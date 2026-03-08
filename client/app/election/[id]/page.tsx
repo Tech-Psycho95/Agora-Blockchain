@@ -1,6 +1,7 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useAccount } from "wagmi";
+import { usePathname } from "next/navigation";
 import Loader from "../../components/Helper/Loader";
 import ElectionDetails from "../../components/Cards/ElectionDetails";
 import ClipBoard from "../../components/Helper/ClipBoard";
@@ -13,6 +14,7 @@ import { useElectionInformation } from "@/app/components/Hooks/GetElectionInform
 
 const ElectionPage = ({ params }: { params: { id: `0x${string}` } }) => {
   const { address } = useAccount();
+  const pathname = usePathname();
   const electionAddress = params.id;
   const { electionData, setelectionData } = useElectionData();
   const { electionInformation, isLoading } = useElectionInformation({
@@ -20,11 +22,14 @@ const ElectionPage = ({ params }: { params: { id: `0x${string}` } }) => {
     electionAddress: electionAddress,
   });
 
-  if (isLoading) return <Loader />;
+  // Use useEffect to update state to avoid setting state during render
+  useEffect(() => {
+    if (electionInformation) {
+      setelectionData(electionInformation);
+    }
+  }, [electionInformation, setelectionData]);
 
-  if (electionData !== electionInformation) {
-    setelectionData(electionInformation);
-  }
+  if (isLoading) return <Loader />;
 
   if (!electionData) return <Loader />;
   const owner = electionData[0].result;
@@ -40,6 +45,10 @@ const ElectionPage = ({ params }: { params: { id: `0x${string}` } }) => {
   const isStarting = Math.floor(Date.now() / 1000) < Number(electionInfo[0]);
   const isEnded = Math.floor(Date.now() / 1000) > Number(electionInfo[1]);
   const electionStat = isStarting ? 1 : isEnded ? 3 : 2;
+
+  // Build URL safely without accessing window during SSR
+  const currentUrl = typeof window !== "undefined" ? window.location.href : `${pathname}`;
+
   return (
     <div className="h-screen overflow-auto bg-white pt-20 w-full rounded-2xl flex items-start justify-center">
       <div className="w-[90%] p-4">
@@ -65,7 +74,7 @@ const ElectionPage = ({ params }: { params: { id: `0x${string}` } }) => {
           <ButtonCard isOwner={owner === address} />
         </div>
         <div className="md:flex-row gap-x-4 flex flex-col items-center sm:items-stretch justify-between">
-          <ClipBoard inputValue={window.location.href} />
+          <ClipBoard inputValue={currentUrl} />
           <CrossChain
             isEnded={isEnded}
             electionAddress={electionAddress}

@@ -114,10 +114,23 @@ function Election() {
 		}
 
 	useEffect(() => {
-		if(1) {
-			setAdmin(true);
-		}
-	}, [])
+		const checkAdmin = async () => {
+			try {
+				const { ethereum } = window;
+				if (ethereum && electionDetails && electionDetails.electionOrganizer) {
+					const provider = new ethers.providers.Web3Provider(ethereum);
+					const signer = provider.getSigner();
+					const address = await signer.getAddress();
+					if (address.toLowerCase() === electionDetails.electionOrganizer.toLowerCase()) {
+						setAdmin(true);
+					}
+				}
+			} catch (err) {
+				console.log(err);
+			}
+		};
+		checkAdmin();
+	}, [electionDetails])
 	useEffect(() => {
         getVotingProcess(electionId).then((result) => {
             console.log("Voting process electionId: ", electionId);

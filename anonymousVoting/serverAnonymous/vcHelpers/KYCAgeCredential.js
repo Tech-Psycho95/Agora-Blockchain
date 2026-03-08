@@ -5,7 +5,8 @@ module.exports = {
     id: 1,
     circuitId: "credentialAtomicQuerySigV2",
     query: {
-      allowedIssuers: ["*"],
+      // TODO: Configure production issuers. An empty array rejects all issuers by default.
+      allowedIssuers: [],
       type: "KYCAgeCredential",
       context:
         "https://raw.githubusercontent.com/iden3/claim-schema-vocab/main/schemas/json-ld/kyc-v3.json-ld",
