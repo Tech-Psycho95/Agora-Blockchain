@@ -39,12 +39,11 @@ contract SchulzeBallot is IBallot {
     }
 
     function _validatePermutation(uint[] memory arr, uint n) internal pure {
-        uint bitmap = 0;
+        bool[] memory seen = new bool[](n);
         for (uint i = 0; i < n; i++) {
             if (arr[i] >= n) revert InvalidVotePermutation();
-            uint bit = 1 << arr[i];
-            if (bitmap & bit != 0) revert InvalidVotePermutation();
-            bitmap |= bit;
+            if (seen[arr[i]]) revert InvalidVotePermutation();
+            seen[arr[i]] = true;
         }
     }
 }

@@ -6,24 +6,24 @@ import {Candidatecheck} from "./abstract/CandidateCheck.sol";
 import {VoteWinnerCount} from "./abstract/VoteWinnerCount.sol";
 import {WinnersArray} from "./abstract/WinnersArray.sol";
 
-contract KemenyYoungResult is
+contract CopelandResult is
     Errors,
     Candidatecheck,
     VoteWinnerCount,
     WinnersArray
 {
-    function calculateKemenyYoungResult(
+    function calculateCopelandResult(
         bytes memory returnData
     ) public pure returns (uint256[] memory) {
         uint256[][] memory votes = abi.decode(returnData, (uint256[][]));
-        return performKemenyYoung(votes);
+        return performCopeland(votes);
     }
 
     // Uses Copeland pairwise comparison method as an on-chain feasible
     // approximation of Kemeny-Young (true K-Y requires O(n!) permutation search).
     // Each candidate scores +1 for each pairwise contest they win.
     // The candidate(s) with the most pairwise wins is declared winner.
-    function performKemenyYoung(
+    function performCopeland(
         uint256[][] memory votes
     ) internal pure returns (uint256[] memory) {
         uint256 numCandidates = votes.length;

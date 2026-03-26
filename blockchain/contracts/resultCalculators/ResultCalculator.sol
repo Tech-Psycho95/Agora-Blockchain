@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {GeneralResult} from "./GeneralResult.sol";
 import {IRVResult} from "./IRVResult.sol";
 import {IResultCalculator} from "./interface/IResultCalculator.sol";
-import {KemenyYoungResult} from "./KemenyYoungResult.sol";
+import {CopelandResult} from "./KemenyYoungResult.sol";
 import {SchulzeResult} from "./SchulzeResult.sol";
 import {MooreResult} from "./MooreResult.sol";
 
@@ -12,7 +12,7 @@ contract ResultCalculator is
     GeneralResult,
     IRVResult,
     IResultCalculator,
-    KemenyYoungResult,
+    CopelandResult,
     SchulzeResult,
     MooreResult
 {
@@ -33,7 +33,7 @@ contract ResultCalculator is
         } else if (_resultType == 6) {
             return calculateGeneralResult(returnData);
         } else if (_resultType == 7) {
-            return calculateKemenyYoungResult(returnData);
+            return calculateCopelandResult(returnData);
         } else if (_resultType == 8) {
             return calculateMooreResult(returnData);
         } else {

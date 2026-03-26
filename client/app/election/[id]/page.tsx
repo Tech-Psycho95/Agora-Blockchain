@@ -27,7 +27,11 @@ const ElectionPage = ({ params }: { params: { id: `0x${string}` } }) => {
     if (electionInformation) {
       setelectionData(electionInformation);
     }
-  }, [electionInformation, setelectionData]);
+    // Cleanup function to clear data on component unmount or when electionAddress changes
+    return () => {
+      setelectionData(null);
+    };
+  }, [electionInformation, setelectionData, electionAddress]);
 
   if (isLoading) return <Loader />;
 

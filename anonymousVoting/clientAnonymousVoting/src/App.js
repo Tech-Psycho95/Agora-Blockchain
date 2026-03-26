@@ -37,6 +37,7 @@ function App() {
         <Route path="/createProcess" element={<CreateProcess/>} />
         <Route path="/dashboard" element={<Dashboard/>} />
         <Route path="/election" element={<Election />} />
+        <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
     }
     return ret;

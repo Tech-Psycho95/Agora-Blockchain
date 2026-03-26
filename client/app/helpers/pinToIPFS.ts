@@ -9,6 +9,11 @@ export const pinJSONFile = async (body: any) => {
       body: JSON.stringify(body),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to pin to IPFS: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+    }
+
     const data = await response.json();
     return data;
   } catch (err) {
@@ -19,11 +24,16 @@ export const pinJSONFile = async (body: any) => {
 
 export const unpinJSONFile = async (CID: string) => {
   try {
-    await fetch("/api/ipfs", {
+    const response = await fetch("/api/ipfs", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cid: CID }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to unpin from IPFS: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+    }
   } catch (err) {
     console.error(err);
     throw err;

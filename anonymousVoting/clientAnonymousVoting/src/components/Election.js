@@ -123,13 +123,29 @@ function Election() {
 					const address = await signer.getAddress();
 					if (address.toLowerCase() === electionDetails.electionOrganizer.toLowerCase()) {
 						setAdmin(true);
+					} else {
+						setAdmin(false);
 					}
+				} else {
+					setAdmin(false);
 				}
 			} catch (err) {
 				console.log(err);
+				setAdmin(false);
 			}
 		};
 		checkAdmin();
+
+		const { ethereum } = window;
+		if (ethereum) {
+			ethereum.on('accountsChanged', checkAdmin);
+		}
+
+		return () => {
+			if (ethereum) {
+				ethereum.removeListener('accountsChanged', checkAdmin);
+			}
+		};
 	}, [electionDetails])
 	useEffect(() => {
         getVotingProcess(electionId).then((result) => {

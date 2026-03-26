@@ -14,6 +14,7 @@ contract Election is Initializable {
     error InvalidCandidateID();
     error InvalidElectionTime();
     error ResultsAlreadyDeclared();
+    error MinimumCandidatesRequired();
 
     mapping(address user => bool isVoted) public userVoted;
 
@@ -136,6 +137,7 @@ contract Election is Initializable {
     }
 
     function removeCandidate(uint _id) external onlyOwner electionNotStarted {
+        if (candidates.length <= 2) revert MinimumCandidatesRequired();
         if (_id >= candidates.length) revert InvalidCandidateID();
         uint lastIndex = candidates.length - 1;
         if (_id != lastIndex) {
