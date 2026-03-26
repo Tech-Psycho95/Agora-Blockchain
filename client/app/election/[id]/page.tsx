@@ -22,30 +22,35 @@ const ElectionPage = ({ params }: { params: { id: `0x${string}` } }) => {
     electionAddress: electionAddress,
   });
 
-  // Use useEffect to update state to avoid setting state during render
+  // Sync latest fetched election info into the shared store.
   useEffect(() => {
     if (electionInformation) {
       setelectionData(electionInformation);
     }
-    // Cleanup function to clear data on component unmount or when electionAddress changes
+  }, [electionInformation, setelectionData]);
+
+  // Reset shared election data when context changes or this page unmounts.
+  useEffect(() => {
     return () => {
       setelectionData(null);
     };
-  }, [electionInformation, setelectionData, electionAddress]);
+  }, [address, electionAddress, setelectionData]);
 
   if (isLoading) return <Loader />;
 
-  if (!electionData) return <Loader />;
-  const owner = electionData[0].result;
-  const winners = Number(electionData[1].result);
-  const electionInfo = electionData[2].result;
-  const resultType = electionData[3].result;
-  const totalVotes = Number(electionData[4].result);
-  const userVoted = electionData[5].result;
-  const resultDeclared = electionData[6].result;
-  const candidateList = electionData[7].result;
-  const electionID = electionData[8].result;
-  const isCrossChainEnabled = electionData[9].result;
+  const resolvedElectionData = electionData ?? electionInformation;
+  if (!resolvedElectionData) return <Loader />;
+
+  const owner = resolvedElectionData[0].result;
+  const winners = Number(resolvedElectionData[1].result);
+  const electionInfo = resolvedElectionData[2].result;
+  const resultType = resolvedElectionData[3].result;
+  const totalVotes = Number(resolvedElectionData[4].result);
+  const userVoted = resolvedElectionData[5].result;
+  const resultDeclared = resolvedElectionData[6].result;
+  const candidateList = resolvedElectionData[7].result;
+  const electionID = resolvedElectionData[8].result;
+  const isCrossChainEnabled = resolvedElectionData[9].result;
   const isStarting = Math.floor(Date.now() / 1000) < Number(electionInfo[0]);
   const isEnded = Math.floor(Date.now() / 1000) > Number(electionInfo[1]);
   const electionStat = isStarting ? 1 : isEnded ? 3 : 2;

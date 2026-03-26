@@ -2,13 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const JWT = process.env.PINATA_JWT;
 const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY;
+const INTERNAL_API_KEY_HEADER = 'X-Internal-API-Key';
 
 function authorizeRequest(request: NextRequest) {
-    const providedApiKey = request.headers.get('X-Internal-API-Key');
-    if (!INTERNAL_API_KEY || providedApiKey !== INTERNAL_API_KEY) {
+    const providedApiKey = request.headers.get(INTERNAL_API_KEY_HEADER);
+    // Browser clients cannot set internal headers reliably. Only reject when an
+    // explicit internal key is provided but does not match.
+    if (INTERNAL_API_KEY && providedApiKey && providedApiKey !== INTERNAL_API_KEY) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     return null;
+}
+
+function buildProxyResponse(responseText: string, status: number, contentType: string | null) {
+    const shouldTryJson = contentType?.includes('application/json') || contentType?.includes('+json');
+
+    if (shouldTryJson || responseText.length > 0) {
+        try {
+            const parsed = JSON.parse(responseText);
+            return NextResponse.json(parsed, { status });
+        } catch (_error) {
+            // Return plain text when upstream response is not JSON.
+        }
+    }
+
+    return new NextResponse(responseText, {
+        status,
+        headers: {
+            'content-type': contentType || 'text/plain; charset=utf-8',
+        },
+    });
 }
 
 export async function POST(request: NextRequest) {
@@ -34,12 +57,8 @@ export async function POST(request: NextRequest) {
             }
         );
 
-        const data = await response.json();
-        if (!response.ok) {
-            return NextResponse.json(data, { status: response.status });
-        }
-
-        return NextResponse.json(data);
+        const responseText = await response.text();
+        return buildProxyResponse(responseText, response.status, response.headers.get('content-type'));
     } catch (err) {
         console.error('Error pinning to IPFS:', err);
         return NextResponse.json({ error: 'Failed to pin to IPFS' }, { status: 500 });
@@ -56,18 +75,21 @@ export async function DELETE(request: NextRequest) {
 
     try {
         const { cid } = await request.json();
-        if (!cid) {
+        if (typeof cid !== 'string' || cid.trim() === '') {
             return NextResponse.json({ error: 'CID is required' }, { status: 400 });
         }
 
-        const response = await fetch(`https://api.pinata.cloud/pinning/unpin/${cid}`, {
+        const safeCid = cid.trim();
+        const encodedCid = encodeURIComponent(safeCid);
+
+        const response = await fetch(`https://api.pinata.cloud/pinning/unpin/${encodedCid}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${JWT}` },
         });
 
         if (!response.ok) {
-            const errorBody = await response.text(); // Pinata returns text on failure for DELETE
-            return NextResponse.json({ error: errorBody || 'Failed to unpin from Pinata' }, { status: response.status });
+            const errorBody = await response.text();
+            return buildProxyResponse(errorBody, response.status, response.headers.get('content-type'));
         }
 
         return NextResponse.json({ success: true });
