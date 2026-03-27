@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import homeReducer from './home.slice';
+import homeReducer, { HOME_INITIAL_STATE } from './home.slice';
 
 const HOME_STORAGE_KEY = 'anonymousVoting.home';
 
@@ -16,7 +16,8 @@ const loadHomeState = () => {
         }
 
         return {
-            hasRegistered: parsedState.hasRegistered,
+            ...HOME_INITIAL_STATE,
+            hasRegistered: parsedState?.hasRegistered ?? HOME_INITIAL_STATE.hasRegistered,
         };
     } catch (_error) {
         return undefined;
